@@ -1,0 +1,50 @@
+- hosts: all
+  vars: 
+     software: "httpd"
+     web_port: "8080"
+     doc_root: "/var/www/satyam"    
+   
+   
+  tasks: 
+    - name: Installing HTTPD software
+      package:
+          name: httpd
+          state: present
+     
+    - name: Creating directory document root
+      file:
+          state: directory
+          path: "{{ doc_root }}"
+      
+    - name: Copying index.html page
+      template:
+          src: /root/task11.3/index.html
+          dest: "{{ doc_root }}"
+         
+    - name: Copying configuration file
+      template:
+          src: /root/task11.3/new.conf
+          dest: /etc/httpd/conf.d/new.conf   
+      notify:
+         - Restart httpd 
+  
+    - name: Adding rule for HTTPD in firewalld
+      firewalld:
+          port: "{{ web_port }}/tcp"
+          state: enabled
+          permanent: yes
+          immediate: yes  
+     
+    - name: Restarting HTTPD service
+      service:
+          name: httpd
+          state: started   
+      
+  handlers:
+     - name: Restart httpd 
+       service:
+          name: httpd
+          state: restarted
+
+
+
